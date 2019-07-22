@@ -286,3 +286,29 @@ impl<PINS: Send+Sync> usb_device::bus::UsbBus for UsbBus<PINS> {
         });
     }
 }
+
+impl<PINS: Send+Sync> usb_device::bus::UsbBusEndpointStatus for UsbBus<PINS> {
+    fn can_write(&self, ep_addr: EndpointAddress) -> Result<bool> {
+        if !ep_addr.is_in() {
+            return Err(UsbError::InvalidEndpoint);
+        }
+
+        Ok(self.endpoints[ep_addr.index()].can_write())
+    }
+
+    fn write_complete(&self, ep_addr: EndpointAddress) -> Result<bool> {
+        if !ep_addr.is_in() {
+            return Err(UsbError::InvalidEndpoint);
+        }
+
+        Ok(self.endpoints[ep_addr.index()].write_complete())
+    }
+
+    fn available_read(&self, ep_addr: EndpointAddress) -> Result<usize> {
+        if !ep_addr.is_out() {
+            return Err(UsbError::InvalidEndpoint);
+        }
+
+        self.endpoints[ep_addr.index()].available_read()
+    }
+}
